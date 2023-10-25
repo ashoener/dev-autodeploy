@@ -11,13 +11,13 @@ import { proxyMappings, repoMappings } from "./state";
 export default async (req, server) => {
   const url = new URL(req.url);
   if (url.pathname.slice(1) != config.webhookUrl)
-    return new Response("", { status: 404 });
+    return new Response(null, { status: 404 });
   if (req.method != "POST") return new Response("ok");
   let data;
   try {
     data = await req.json();
   } catch (e) {
-    return new Response("", { status: 500 });
+    return new Response(null, { status: 500 });
   }
   if (data.ref !== `refs/heads/${data.repository.master_branch}`)
     return Response("ok");
