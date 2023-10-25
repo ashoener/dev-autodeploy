@@ -1,0 +1,19 @@
+{
+  "name": "dev-autodeploy",
+  "version": "1.0.0",
+  "author": "Andrew Shoener",
+  "main": "index.js",
+  "types": "module",
+  "dependencies": {
+    "portfinder": "^1.0.32"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "description": "",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module"
+}
