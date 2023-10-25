@@ -25,21 +25,15 @@ Bun.serve({
       });
     const proxyDomain = config.mappings[subDomain] || proxyMappings[subDomain];
     const proxiedUrl = `${host.protocol}//${proxyDomain}${host.pathname}${host.search}`;
+    let newReq = req.clone();
+    newReq.headers.append("x-forwarded-for", server.requestIP(req).address);
+    Object.defineProperty(newReq, "body", { writable: true });
+    if (req.body) {
+      newReq.body = (await req.body.getReader().read()).value;
+    }
     try {
-      const res = await fetch(proxiedUrl, {
-        headers: {
-          ...req.headers,
-          "x-forwarded-for": server.requestIP(req).address,
-        },
-        method: req.method,
-        body: req.body,
-      });
-      res.headers.delete("content-encoding");
-      return new Response(res.body, {
-        headers: {
-          ...res.headers.toJSON(),
-        },
-      });
+      const res = await fetch(proxiedUrl, newReq);
+      return res;
     } catch (e) {
       return new Response(null, { status: 500 });
     }
