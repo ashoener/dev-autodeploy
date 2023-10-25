@@ -7,9 +7,10 @@ import { repoMappings, proxyMappings } from "./state";
 portfinder.setBasePort(5001);
 
 const spawnData = async () => ({
-  stdout: "pipe",
-  stderr: "pipe",
+  stdout: "inherit",
+  stderr: "inherit",
   env: {
+    ...process.env,
     GIT_SSH_COMMAND: `ssh -i ${config.sshKey} -o IdentitiesOnly=yes`,
     PORT: await portfinder.getPortPromise(),
   },
