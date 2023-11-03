@@ -4,7 +4,17 @@ import path from "path";
 import * as portfinder from "portfinder";
 import { repoMappings, proxyMappings } from "./state";
 
+const usedPorts = [];
+let bootingUp = true;
+
 portfinder.setBasePort(5001);
+
+async function getOpenPort() {
+  if (usedPorts.length) portfinder.setBasePort(usedPorts.at(-1) + 1);
+  const port = await portfinder.getPortPromise();
+  usedPorts.push(port);
+  return port;
+}
 
 const spawnData = async () => ({
   stdout: "inherit",
@@ -12,7 +22,7 @@ const spawnData = async () => ({
   env: {
     ...process.env,
     GIT_SSH_COMMAND: `ssh -i ${config.sshKey} -o IdentitiesOnly=yes`,
-    PORT: await portfinder.getPortPromise(),
+    PORT: bootingUp ? await getOpenPort() : await portfinder.getPortPromise(),
   },
 });
 
@@ -25,6 +35,7 @@ export async function startProcesses() {
   for (let folder of config.repos) {
     await startProcess(folder);
   }
+  bootingUp = false;
 }
 
 export async function stopProcess(repo) {
