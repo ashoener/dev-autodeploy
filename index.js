@@ -28,9 +28,11 @@ Bun.serve({
     let newReq = req.clone();
     newReq.headers.append("x-forwarded-for", server.requestIP(req).address);
     Object.defineProperty(newReq, "body", { writable: true });
+    Object.defineProperty(newReq, "redirect", { writable: true });
     if (req.body) {
       newReq.body = (await req.body.getReader().read()).value;
     }
+    newReq.redirect = "manual";
     try {
       const res = await fetch(proxiedUrl, newReq);
       return res;
