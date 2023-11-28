@@ -40,7 +40,14 @@ export async function startProcesses() {
 
 export async function stopProcess(repo) {
   if (repo in deployedProcesses) {
+    console.log("Killing process", deployedProcesses[repo].pid);
     deployedProcesses[repo].kill();
+    console.log(await deployedProcesses[repo].exited);
+    console.log(
+      "Killed?",
+      deployedProcesses[repo].exitCode,
+      deployedProcesses[repo].killed
+    );
     delete deployedProcesses[repo];
     delete proxyMappings[repoMappings[repo]];
     delete repoMappings[repo];
@@ -52,12 +59,16 @@ export async function startProcess(repo) {
   const deployConfigFile = path.join(repoPath, "deploy.json");
   const deployConfig = JSON.parse(await fs.readFile(deployConfigFile, "utf8"));
   const data = await spawnData();
-  const installProcess = Bun.spawn({
-    cmd: [...deployConfig.install.split(" ")],
-    cwd: repoPath,
-    ...data,
-  });
-  await installProcess.exited;
+  const installCommand = deployConfig.install.split("&&");
+  for (let cmd of installCommand) {
+    console.log("INSTALL", cmd);
+    const installProcess = Bun.spawn({
+      cmd: cmd.trim().split(" "),
+      cwd: repoPath,
+      ...data,
+    });
+    await installProcess.exited;
+  }
   const port = data.env.PORT;
   repoMappings[repo] = deployConfig.subdomain || repo;
   proxyMappings[repoMappings[repo]] = `127.0.0.1:${port}`;
@@ -66,6 +77,7 @@ export async function startProcess(repo) {
     cwd: repoPath,
     ...data,
   });
+  console.log("PID: %s", deployedProcesses[repo].pid);
   console.log(
     `Started ${repo} on ${proxyMappings[repoMappings[repo]]}, with subdomain ${
       repoMappings[repo]
