@@ -35,6 +35,7 @@ Bun.serve({
     newReq.redirect = "manual";
     try {
       const res = await fetch(proxiedUrl, newReq);
+      res.headers.delete("content-encoding");
       return res;
     } catch (e) {
       return new Response(null, { status: 500 });
